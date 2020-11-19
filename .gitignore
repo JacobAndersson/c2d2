@@ -1,0 +1,9 @@
+__pycache__
+*.sw[op]
+*.pyc
+
+
+/c2d2/data/*
+/c2d2/*.csv
+/c2d2/train/checkpoints/*
+/c2d2/checkpoint/*
