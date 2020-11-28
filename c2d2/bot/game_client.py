@@ -46,6 +46,7 @@ class Game(threading.Thread):
     def find_move(self):
         #move = random.choice(list(self.engine.board.legal_moves))
         move, evaluation  = self.engine.find_best_move()
+        print(move, evaluation)
         self.engine.board.push(move)
         return move.uci(), evaluation
 

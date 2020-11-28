@@ -1,21 +1,67 @@
 import chess
 from c2d2.engine.evaluator import Evaluator
+from c2d2.engine import search
+from c2d2.engine.piece_tables import *
 
-def count_pieces(board):
-    wp = len(board.pieces(chess.PAWN, chess.WHITE))
-    bp = len(board.pieces(chess.PAWN, chess.BLACK))
-    wn = len(board.pieces(chess.KNIGHT, chess.WHITE))
-    bn = len(board.pieces(chess.KNIGHT, chess.BLACK))
-    wb = len(board.pieces(chess.BISHOP, chess.WHITE))
-    bb = len(board.pieces(chess.BISHOP, chess.BLACK))
-    wr = len(board.pieces(chess.ROOK, chess.WHITE))
-    br = len(board.pieces(chess.ROOK, chess.BLACK))
-    wq = len(board.pieces(chess.QUEEN, chess.WHITE))
-    bq = len(board.pieces(chess.QUEEN, chess.BLACK))
+class material():
+    def eval(self, board):
+        turn = 1 if board.turn else -1
+        if (board.is_checkmate()):
+            return turn * 9000
 
-    material = 100*(wp-bp)+320*(wn-bn)+330*(wb-bb)+500*(wr-br)+900*(wq-bq)
+        return self.getMaterial(board) + self.piece_Tables(board)
 
-    return material
+    def getMaterial(self, board):
+        wp = board.pieces(chess.PAWN, chess.WHITE)
+        bp = board.pieces(chess.PAWN, chess.BLACK)
+        wn = board.pieces(chess.KNIGHT, chess.WHITE)
+        bn = board.pieces(chess.KNIGHT, chess.BLACK)
+        wb = board.pieces(chess.BISHOP, chess.WHITE)
+        bb = board.pieces(chess.BISHOP, chess.BLACK)
+        wr = board.pieces(chess.ROOK, chess.WHITE)
+        br = board.pieces(chess.ROOK, chess.BLACK)
+        wq = board.pieces(chess.QUEEN, chess.WHITE)
+        bq = board.pieces(chess.QUEEN, chess.BLACK)
+        wk = board.pieces(chess.KING, chess.WHITE)
+        bk = board.pieces(chess.KING, chess.BLACK)
+
+        material = 100*(len(wp)-len(bp))+320*(len(wn)-len(bn))+330*(len(wb)-len(bb))+500*(len(wr)-len(br))+900*(len(wq)-len(bq))
+
+        return material
+    def piece_Tables(self, board):
+        wp = board.pieces(chess.PAWN, chess.WHITE)
+        bp = board.pieces(chess.PAWN, chess.BLACK)
+        wn = board.pieces(chess.KNIGHT, chess.WHITE)
+        bn = board.pieces(chess.KNIGHT, chess.BLACK)
+        wb = board.pieces(chess.BISHOP, chess.WHITE)
+        bb = board.pieces(chess.BISHOP, chess.BLACK)
+        wr = board.pieces(chess.ROOK, chess.WHITE)
+        br = board.pieces(chess.ROOK, chess.BLACK)
+        wq = board.pieces(chess.QUEEN, chess.WHITE)
+        bq = board.pieces(chess.QUEEN, chess.BLACK)
+        wk = board.pieces(chess.KING, chess.WHITE)
+        bk = board.pieces(chess.KING, chess.BLACK)
+
+        pawnsq = sum([pawntable[i] for i in wp])
+        pawnsq= pawnsq + sum([-pawntable[chess.square_mirror(i)]
+                                        for i in bp])
+        knightsq = sum([knightstable[i] for i in wn])
+        knightsq = knightsq + sum([-knightstable[chess.square_mirror(i)]
+                                        for i in bn])
+        bishopsq= sum([bishopstable[i] for i in wb])
+        bishopsq= bishopsq + sum([-bishopstable[chess.square_mirror(i)]
+                                        for i in bb])
+        rooksq = sum([rookstable[i] for i in wr])
+        rooksq = rooksq + sum([-rookstable[chess.square_mirror(i)]
+                                        for i in br])
+        queensq = sum([queenstable[i] for i in wq])
+        queensq = queensq + sum([-queenstable[chess.square_mirror(i)]
+                                        for i in bq])
+        kingsq = sum([kingstable[i] for i in wk])
+        kingsq = kingsq + sum([-kingstable[chess.square_mirror(i)]
+                                        for i in bk])
+
+        return pawnsq + knightsq + bishopsq+ rooksq+ queensq + kingsq 
 
 
 class Engine():
@@ -23,34 +69,18 @@ class Engine():
         self.depth = depth
         self.board = chess.Board()
         self.evaluator = Evaluator()
+        self.search = search.negamax_alpha_beta
+        self.transition_table = {}
 
     def make_move(self, uci):
         move = chess.Move.from_uci(uci)
         self.board.push(move)
 
-
-    def nega_max(self, board, depth, color):
-        
-        if depth == 0 or board.is_game_over():
-            return [self.evaluator.eval(board), None]
-
-        best = [-9999, None]
-        for move in board.legal_moves:
-            board.push(move)
-            score = -1 * self.nega_max(board, depth - 1, -1 * color)[0]
-            if score > best[0]:
-                best = [score, move]
-
-            board.pop()
-
-        return best
-
-
     def find_best_move(self):
-        material = count_pieces(self.board)
-
         turn = 1 if self.board.turn else -1
-
-        score, move = self.nega_max(self.board, self.depth, turn)
+        print('current turn', turn, self.board.turn)
+        print(self.board)
+        #score, move = self.search(self.board, self.evaluator, self.depth, turn)
+        score, move, depth= self.search(self, self.depth, -9999, 9999, turn, root=True,) 
         return move, score
     

@@ -12,14 +12,10 @@ class TunerPositions():
         self.batch_size = batch_size
         self.stockfish = chess.engine.SimpleEngine.popen_uci("/usr/games/stockfish")
 
-        #result = engine.analyse(board, chess.engine.Limit(depth=depth))
-        #engine = chess.engine.SimpleEngine.popen_uci("/usr/games/stockfish")
-
-    
     def stockfishEval(self, fen):
         board = chess.Board(fen)
         res = self.stockfish.analyse(board, chess.engine.Limit(depth=self.depth))
-        y = res['score'].white() if board.turn else res['score'].black()
+        y = res['score'].white() 
 
         try:
             y = float(str(y))
@@ -27,8 +23,6 @@ class TunerPositions():
             y = None
 
         return y
-
-
 
     def batches(self):
         dataset = open(self.path, 'r')

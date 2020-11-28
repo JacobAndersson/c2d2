@@ -1,2 +1,2 @@
 # c2d2
-Chess bot 
+Simple chess bot for lichess
